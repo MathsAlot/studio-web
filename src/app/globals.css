@@ -1,0 +1,203 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------ *
+ * Design tokens — single source of truth is DESIGN.md at the repo root.
+ * Raw values live here once; components use the generated Tailwind
+ * utilities (bg-primary, text-success, rounded-md, ...). Never hardcode a
+ * hex or radius in a component.
+ * ------------------------------------------------------------------ */
+:root {
+  color-scheme: light;
+
+  /* Brand */
+  --primary: #14532d;
+  --primary-hover: #166534;
+  --primary-active: #0f3d22;
+  --primary-foreground: #f0fdf4;
+  --primary-subtle: #dcfce7;
+  --primary-subtle-foreground: #14532d;
+
+  /* Neutrals */
+  --background: #f6f7f6;
+  --foreground: #16201a;
+  --card: #ffffff;
+  --card-foreground: #16201a;
+  --popover: #ffffff;
+  --popover-foreground: #16201a;
+  --muted: #f1f3f2;
+  --muted-foreground: #5b6860;
+  --secondary: #f1f3f2;
+  --secondary-foreground: #16201a;
+  --accent: #dcfce7;
+  --accent-foreground: #14532d;
+  --surface: #ffffff;
+  --surface-muted: #f1f3f2;
+  --border: #d7ddd8;
+  --border-strong: #b4beb6;
+  --input: #d7ddd8;
+  --ring: #14532d;
+
+  /* Semantic — never the sole status signal; always paired with icon + label */
+  --success: #15803d;
+  --success-subtle: #dcfce7;
+  --success-foreground: #14532d;
+  --warning: #b45309;
+  --warning-subtle: #fef3c7;
+  --warning-foreground: #78350f;
+  --danger: #b91c1c;
+  --danger-subtle: #fee2e2;
+  --danger-foreground: #7f1d1d;
+  --info: #1d4ed8;
+  --info-subtle: #dbeafe;
+  --info-foreground: #1e3a8a;
+  --destructive: #b91c1c;
+  --destructive-foreground: #fef2f2;
+
+  /* Dark forest sidebar */
+  --sidebar: #14532d;
+  --sidebar-foreground: #f0fdf4;
+  --sidebar-muted: #166534;
+  --sidebar-subtle: #dcfce7;
+  --sidebar-subtle-foreground: #14532d;
+  --sidebar-ring: #86efac;
+
+  /* Shape */
+  --radius: 10px;
+}
+
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Typography scale from DESIGN.md */
+  --text-display: 1.75rem;
+  --text-display--line-height: 1.2;
+  --text-heading-1: 1.375rem;
+  --text-heading-1--line-height: 1.3;
+  --text-heading-2: 1rem;
+  --text-heading-2--line-height: 1.4;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.5;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.5;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.4;
+
+  /* One radius system: sm 4 / md 6 / lg 10 (DESIGN.md) */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-subtle-foreground: var(--primary-subtle-foreground);
+
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info: var(--info);
+  --color-info-subtle: var(--info-subtle);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-subtle: var(--sidebar-subtle);
+  --color-sidebar-subtle-foreground: var(--sidebar-subtle-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  /* shadcn sidebar plumbing mapped to the documented sidebar tokens */
+  --color-sidebar-primary: var(--sidebar);
+  --color-sidebar-primary-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-subtle);
+  --color-sidebar-accent-foreground: var(--sidebar-subtle-foreground);
+  --color-sidebar-border: var(--sidebar-muted);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    height: 100%;
+    @apply font-sans;
+    /* Keep the focused control clear of the sticky Trick action bar. */
+    scroll-padding-bottom: 5rem;
+  }
+
+  body {
+    min-height: 100%;
+    @apply bg-background text-foreground;
+  }
+
+  /* Keyboard focus target must clear the sticky top bar. */
+  #main-content {
+    scroll-margin-top: 5rem;
+  }
+
+  /* One always-visible keyboard focus treatment for every interactive
+     element, independent of component-level classes. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* On the dark forest sidebar the brand ring is invisible; use the light
+     sidebar ring instead so focus is always obvious. */
+  [data-slot='app-sidebar'] :focus-visible {
+    outline: 2px solid var(--sidebar-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Respect reduced-motion: loading spinners collapse to a static glyph (F-05). */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin {
+    animation: none;
+  }
+}
+
+@utility label-eyebrow {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
