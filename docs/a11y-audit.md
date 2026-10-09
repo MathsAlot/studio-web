@@ -148,12 +148,12 @@ outstanding are listed in §2.5.
 ```
 npm run lint       → clean (eslint ., typescript-eslint + js recommended; no-explicit-any = error)
 npm run typecheck  → clean (tsc --noEmit)
-npm run test       → Test Files 36 passed (36); Tests 156 passed (156)
-npm run build      → compiled successfully in 9.6s; 59 route entries (58 ƒ dynamic, 1 ○ static /_not-found)
+npm run test       → Test Files 37 passed (37); Tests 164 passed (164)   [re-run 2026-10-09, §9]
+npm run build      → compiled successfully; 59 route entries (58 ƒ dynamic, 1 ○ static /_not-found)
 ```
 
-Structural accessibility coverage in the suite (grep): **124** `getByRole` queries across
-**27** test files; **86** `aria-label` attributes; **59** `role="status"`/`role="alert"`
+Structural accessibility coverage in the suite (grep, re-counted 2026-10-09): **135** `getByRole`
+queries across **28** test files; **91** `aria-label` attributes; **58** `role="status"`/`role="alert"`
 usages; **18** `aria-live` regions; **5** `aria-current`; **14** `TableCaption` (sr-only table
 names); **0** raw hex colours in `src/components`.
 
@@ -205,6 +205,8 @@ Notes behind the source judgements:
 - **Keyboard path** — interactive controls are native buttons/links/inputs; the age-tier tabs
   implement a roving-tabindex tablist with Arrow/Home/End (`age-tier-tabs.tsx`); dialogs use
   Radix focus trap + Esc; icon-only buttons carry `aria-label`; targets are ≥24px (WCAG 2.5.8).
+  The login password toggle is a native `type="button"` immediately after the field in tab order,
+  and login controls reach 44px on phones (§9).
 - **Visible focus** — global `:focus-visible` outline; sidebar override for the dark surface;
   sticky-bar clearance via `scroll-padding-bottom`/`scroll-margin-top`.
 - **Labels / errors** — `FormField` renders `<label htmlFor>`, `aria-required`, `aria-invalid`,
@@ -277,3 +279,77 @@ are source + test based and their live verification is explicitly outstanding: a
 exists, but no running API + web pair with an authenticated session was exercised in this
 environment (§1, §2.5) — this fix is a token/class-level change, so the authenticated screens
 still need a real-browser re-audit once such a pair is running.
+
+## 9. Login update — password visibility toggle and mobile layout (2026-10-09)
+
+Follow-up on the login screen: a password show/hide control was added and the mobile layout was
+hardened. The executed / not-executed split of §1 applies unchanged.
+
+### 9.1 What changed
+
+- `src/components/ui/password-input.tsx` (new): a reusable password field wrapping `Input` with a
+  native `<button type="button">` toggle. The toggle names the action it performs ("Show password" /
+  "Hide password"), exposes state with `aria-pressed`, points at the field with `aria-controls`,
+  hides its icon from AT, and can never submit the form. The input keeps `type="password"` until the
+  user reveals it, so browser password managers and autofill are unaffected (the control is a sibling
+  of the input, not nested inside it).
+- `src/components/login-form.tsx`: the login password field now uses `PasswordInput`; the inputs and
+  the submit button use `h-11` (44px) below `md`/`sm` and the dense `h-8` from `md`/`sm` up.
+- `src/app/login/page.tsx`: the form section is `flex-1`, so on phones it fills the viewport and the
+  compact brand header sits below it. `min-h-dvh` was already in use — there is no `100vh` anywhere in
+  `src`.
+- The admin `ResetPasswordDialog` was **not** changed: two password fields in one dialog would produce
+  two identically named "Show password" toggles (ambiguous for assistive tech); doing it correctly
+  needs a configurable accessible name and new dialog tests, which is more than a drop-in swap.
+
+### 9.2 Mobile layout strategy
+
+The brand carousel stays hidden below `lg` (1024px); a compact brand header stacks **after** the form
+(`order-2`), so the form is the first thing on screen and the submit button is reachable without
+scrolling past the brand. This keeps the existing split-layout behaviour: the carousel competes with
+the form for the first screen and carries autoplay motion, so hiding it on phones keeps the form
+immediately usable while preserving it on desktop.
+
+### 9.3 Executed
+
+- Component tests: `npm run test` → Test Files **37 passed (37)**; Tests **164 passed (164)**
+  (was 36/156; +1 file, +8 tests). New: `password-input.test.tsx` (4 tests) and four login-form
+  tests (reveal/hide, toggle-does-not-submit, touch-target classes, focus-through-wrapper).
+- Real-browser render (production build, `/login`) measured at 320, 360, 390, 430, 768, 1024 and
+  1280 CSS px using same-origin iframes (`document.scrollWidth === document.clientWidth` at every
+  width → no horizontal overflow):
+
+  ```
+  width  overflowX  carousel  compactHeader  emailH  toggleW  submitH  submitInViewport
+  320    false      false     true           44      44       44       true
+  360    false      false     true           44      44       44       true
+  390    false      false     true           44      44       44       true
+  430    false      false     true           44      44       44       true
+  768    false      false     true           32      44       32       true
+  1024   false      true      false          32      44       32       true
+  1280   false      true      false          32      44       32       true
+  ```
+
+  At 390×720 the submit button sits at y 444–488 and the dark-green compact brand header at
+  y 609–720; `scrollHeight` equals `clientHeight` (720), so the form is fully usable without
+  scrolling. At 1280 the split is a real grid (`grid-template-columns: 640px 640px`) with the
+  carousel present.
+- Real-browser toggle interaction (trusted click on the accessibility-tree ref): `type`
+  `password → text`, accessible name `Show password → Hide password`, `aria-pressed` `false → true`.
+- Lighthouse on the updated `/login` (production build): accessibility **1.0**, best-practices 1.0,
+  seo 0.8 (robots.txt only — not applicable to an authenticated internal console).
+- `npm run check:contrast` → `OK: 32/32 enforced pairs meet their WCAG threshold` (unchanged; no
+  token was added or changed).
+- `npm run lint`, `npm run typecheck`, `npm run format:check` → clean; `npm run build` → success.
+
+### 9.4 Not executed
+
+| Check | Reason |
+| --- | --- |
+| Physical-device / real mobile-viewport pass (320–430px) | No device emulation is available in this environment; the widths were rendered as real same-origin iframes, not a device. |
+| Real key-press activation of the toggle (Enter/Space) | The browser tool's key dispatch delivered zero keydown events to the page (an in-page `keydown` counter stayed at 0), so a trusted key-press could not be exercised. Native `<button type="button">` semantics (focusable, `tabIndex` 0, no `tabindex="-1"`/`disabled`) and focus are verified, and a bubbling `click` — the activation a browser produces for Enter/Space — was exercised and flips the field. |
+| Screen-reader walkthrough of the toggle | No screen-reader runtime in this environment; human action. |
+| axe-core re-run | The axe injection used in §2.2 is not available as a tool here; Lighthouse (which runs axe-core under the hood for many rules) scored accessibility 1.0 with no failing accessibility audits. |
+
+The mobile and toggle judgements are rendered-DOM judgements from a real browser at the widths
+above; the physical-device and real key-press checks are explicitly outstanding.

@@ -109,4 +109,58 @@ describe('LoginForm', () => {
     expect(screen.getByLabelText('Email address')).toHaveValue('staff@example.com');
     expect(router.replace).not.toHaveBeenCalled();
   });
+
+  it('reveals and hides the password without losing the value', () => {
+    render(<LoginForm nextPath="/" />);
+
+    const password = screen.getByLabelText('Password');
+    expect(password).toHaveAttribute('type', 'password');
+
+    fireEvent.change(password, { target: { value: 'secret-password' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+
+    expect(password).toHaveAttribute('type', 'text');
+    expect(password).toHaveValue('secret-password');
+    expect(screen.getByRole('button', { name: 'Hide password' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+  });
+
+  it('does not submit the form when the password toggle is used', () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<LoginForm nextPath="/" />);
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'staff@example.com' },
+    });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret-password' } });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show password' }));
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(screen.queryByText(/check the highlighted fields/i)).toBeNull();
+    expect(screen.getByLabelText('Password')).toHaveValue('secret-password');
+  });
+
+  it('uses >=44px mobile touch targets that return to the dense size from md up', () => {
+    render(<LoginForm nextPath="/" />);
+
+    expect(screen.getByLabelText('Email address')).toHaveClass('h-11', 'md:h-8');
+    expect(screen.getByLabelText('Password')).toHaveClass('h-11', 'md:h-8');
+    expect(screen.getByRole('button', { name: /sign in/i })).toHaveClass('h-11', 'sm:h-8');
+    expect(screen.getByRole('button', { name: 'Show password' })).toHaveClass('w-11', 'h-full');
+  });
+
+  it('still moves focus to the password input through the wrapper on validation', () => {
+    render(<LoginForm nextPath="/" />);
+    fireEvent.change(screen.getByLabelText('Email address'), {
+      target: { value: 'staff@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(screen.getByText('Enter your password.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toHaveFocus();
+  });
 });

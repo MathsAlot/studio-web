@@ -50,7 +50,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
       <section
         aria-label="Sign in"
-        className="order-1 flex items-center justify-center px-4 py-10 lg:order-2 lg:px-8"
+        className="order-1 flex flex-1 items-center justify-center px-4 py-8 sm:py-10 lg:order-2 lg:px-8"
       >
         <div className="w-full max-w-md">
           <Card>

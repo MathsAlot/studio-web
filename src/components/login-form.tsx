@@ -8,6 +8,7 @@ import { ErrorAlert } from '@/components/error-alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import { login } from '@/lib/client/session';
 
 interface LoginFormProps {
@@ -113,6 +114,7 @@ export function LoginForm({ nextPath, initialError = null }: LoginFormProps) {
           onChange={(event) => setEmail(event.target.value)}
           aria-invalid={fieldErrors.email ? true : undefined}
           aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+          className="h-11 md:h-8"
         />
         {fieldErrors.email ? (
           <p id="email-error" role="alert" className="text-body-sm text-danger">
@@ -123,17 +125,17 @@ export function LoginForm({ nextPath, initialError = null }: LoginFormProps) {
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="password">Password</Label>
-        <Input
+        <PasswordInput
           ref={passwordRef}
           id="password"
           name="password"
-          type="password"
           autoComplete="current-password"
           required
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           aria-invalid={fieldErrors.password ? true : undefined}
           aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+          className="h-11 md:h-8"
         />
         {fieldErrors.password ? (
           <p id="password-error" role="alert" className="text-body-sm text-danger">
@@ -142,7 +144,12 @@ export function LoginForm({ nextPath, initialError = null }: LoginFormProps) {
         ) : null}
       </div>
 
-      <Button type="submit" disabled={pending} aria-busy={pending} className="w-full sm:w-auto">
+      <Button
+        type="submit"
+        disabled={pending}
+        aria-busy={pending}
+        className="h-11 w-full sm:h-8 sm:w-auto"
+      >
         <LogIn aria-hidden="true" />
         {pending ? 'Signing in…' : 'Sign in'}
       </Button>
