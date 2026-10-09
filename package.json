@@ -3,15 +3,30 @@
   "version": "0.0.0",
   "private": true,
   "description": "Next.js internal Studio console UI for non-technical curriculum staff.",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate:api-types": "openapi-typescript ../studio-api/openapi/openapi.yaml -o src/types/api.ts && prettier --write src/types/api.ts"
+    "check:contrast": "node scripts/check-contrast.mjs",
+    "generate:api-types": "openapi-typescript openapi/openapi.yaml -o src/types/api.ts && prettier --write src/types/api.ts"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "semi": true,
+    "trailingComma": "all",
+    "printWidth": 100,
+    "tabWidth": 2,
+    "arrowParens": "always",
+    "endOfLine": "lf"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
@@ -27,6 +42,7 @@
     "tw-animate-css": "^1.4.0"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@tailwindcss/postcss": "4.3.3",
     "@testing-library/dom": "10.4.2",
     "@testing-library/jest-dom": "7.0.1",
@@ -36,11 +52,14 @@
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.2",
     "eslint": "10.12.0",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.13.0",
     "jsdom": "30.1.2",
     "openapi-typescript": "7.13.0",
     "prettier": "3.9.9",
     "tailwindcss": "4.3.3",
     "typescript": "5.9.3",
+    "typescript-eslint": "8.71.0",
     "vite": "8.3.2",
     "vitest": "5.0.3"
   }

@@ -1,0 +1,55 @@
+name: CI
+
+# Release gate for the studio-web delivery repo (Phase 08 D-055). The superseded
+# combined workflow in the agentic workspace root is not the release gate.
+#
+# The repo is self-contained: the OpenAPI contract it generates `src/types/api.ts`
+# from is pinned under `openapi/openapi.yaml` (a byte-identical copy of the
+# canonical spec in the studio-api repo). The drift gate below regenerates the
+# client from that pinned spec and fails if the committed artifact is stale, so a
+# contract change that is not regenerated cannot merge.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify studio-web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit and component tests
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+      - name: Regenerate API client from the pinned OpenAPI contract
+        run: npm run generate:api-types
+
+      - name: Fail on generated-type drift
+        run: git diff --exit-code -- src/types/api.ts

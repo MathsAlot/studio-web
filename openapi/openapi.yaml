@@ -1,0 +1,3052 @@
+openapi: 3.0.0
+paths:
+  /api/auth/login:
+    post:
+      operationId: AuthController_login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSessionDto'
+        '401':
+          description: Invalid email or password.
+        '429':
+          description: Too many login attempts.
+      summary: Authenticate and start a session.
+      tags: &ref_0
+        - auth
+  /api/auth/refresh:
+    post:
+      operationId: AuthController_refresh
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSessionDto'
+        '401':
+          description: Invalid, expired, or reused refresh token.
+        '429':
+          description: Too many refresh attempts.
+      summary: Rotate the refresh token and issue a new token pair.
+      tags: *ref_0
+  /api/auth/logout:
+    post:
+      operationId: AuthController_logout
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponseDto'
+      summary: Revoke the session for the presented refresh token.
+      tags: *ref_0
+  /api/me:
+    get:
+      operationId: MeController_me
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeDto'
+      security:
+        - bearer: []
+      summary: Current user, role, and effective permission keys.
+      tags:
+        - me
+  /api/users:
+    get:
+      operationId: UsersController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSummaryDto'
+      security: &ref_1
+        - bearer: []
+      summary: List Staff and Admin accounts with their granted keys.
+      tags: &ref_2
+        - users
+    post:
+      operationId: UsersController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSummaryDto'
+        '400':
+          description: Invalid role or payload.
+      security: *ref_1
+      summary: Create a Staff or Admin account with an Admin-set password.
+      tags: *ref_2
+  /api/users/{userId}/reset-password:
+    post:
+      operationId: UsersController_resetPassword
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetUserPasswordDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponseDto'
+        '400':
+          description: Weak password or Learner target.
+        '404':
+          description: Unknown user.
+      security: *ref_1
+      summary: 'Lockout recovery: set a new password, revoke sessions, audit (D-047).'
+      tags: *ref_2
+  /api/users/{userId}/permissions:
+    get:
+      operationId: UsersController_listPermissions
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPermissionDto'
+        '404':
+          description: Unknown user.
+      security: *ref_1
+      summary: List the grants held by one user.
+      tags: *ref_2
+    post:
+      operationId: UsersController_grant
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GrantPermissionDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserPermissionDto'
+        '400':
+          description: Unknown key or Admin target.
+        '404':
+          description: Unknown user.
+      security: *ref_1
+      summary: Grant a permission by key.
+      tags: *ref_2
+  /api/users/{userId}/permissions/{key}:
+    delete:
+      operationId: UsersController_revoke
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: key
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokePermissionResponseDto'
+        '400':
+          description: Unknown key or Admin target.
+        '404':
+          description: Unknown user.
+      security: *ref_1
+      summary: Revoke a permission by key.
+      tags: *ref_2
+  /api/permissions:
+    get:
+      operationId: PermissionsController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PermissionDto'
+      security:
+        - bearer: []
+      summary: List the permission catalogue.
+      tags:
+        - permissions
+  /api/worlds:
+    get:
+      operationId: WorldsController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorldSummaryDto'
+      security: &ref_3
+        - bearer: []
+      summary: World tree with Trick counts and computed completion rollup.
+      tags: &ref_4
+        - worlds
+    post:
+      operationId: WorldsController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorldDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorldSummaryDto'
+      security: *ref_3
+      summary: Create a World.
+      tags: *ref_4
+  /api/worlds/order:
+    put:
+      operationId: WorldsController_reorder
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReorderResponseDto'
+      security: *ref_3
+      summary: Reorder Worlds by an explicit ordered id array.
+      tags: *ref_4
+  /api/worlds/{worldId}:
+    patch:
+      operationId: WorldsController_update
+      parameters:
+        - name: worldId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateWorldDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorldSummaryDto'
+        '404':
+          description: Unknown World.
+      security: *ref_3
+      summary: Update a World name/description.
+      tags: *ref_4
+  /api/tricks/{trickId}:
+    get:
+      operationId: TricksController_detail
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick.
+      security: &ref_5
+        - bearer: []
+      summary: Trick detail with variants and computed completeness.
+      tags: &ref_6
+        - tricks
+    patch:
+      operationId: TricksController_update
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrickDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick.
+      security: *ref_5
+      summary: Update Trick fields; each touched field is permission-checked.
+      tags: *ref_6
+  /api/tricks/{trickId}/variants/{ageTier}:
+    put:
+      operationId: TricksController_upsertVariant
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: ageTier
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertVariantDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick.
+      security: *ref_5
+      summary: Upsert an age-tier content variant.
+      tags: *ref_6
+  /api/tricks/{trickId}/preview:
+    get:
+      operationId: TricksController_preview
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: ageTier
+          required: true
+          in: query
+          schema:
+            type: string
+            enum:
+              - FORMATIVE
+              - MIDRANGE
+              - MATURE
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreviewDto'
+        '404':
+          description: Unknown Trick or missing variant.
+      security: *ref_5
+      summary: Preview the selected age-tier content.
+      tags: *ref_6
+  /api/tricks/{trickId}/versions:
+    get:
+      operationId: TricksController_versions
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrickVersionDto'
+        '404':
+          description: Unknown Trick.
+      security: *ref_5
+      summary: Snapshot history, newest first (read-only).
+      tags: *ref_6
+  /api/worlds/{worldId}/tricks:
+    post:
+      operationId: WorldTricksController_create
+      parameters:
+        - name: worldId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrickDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown World.
+      security: &ref_7
+        - bearer: []
+      summary: Create a Trick at the next position and snapshot it.
+      tags: &ref_8
+        - tricks
+  /api/worlds/{worldId}/tricks/order:
+    put:
+      operationId: WorldTricksController_reorder
+      parameters:
+        - name: worldId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReorderResponseDto'
+        '404':
+          description: Unknown World.
+      security: *ref_7
+      summary: Reorder Tricks within a World by an explicit ordered id array.
+      tags: *ref_8
+  /api/worlds/{worldId}/curriculums:
+    get:
+      operationId: WorldCurriculumsController_list
+      parameters:
+        - name: worldId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CurriculumSummaryDto'
+        '404':
+          description: Unknown World.
+      security: &ref_9
+        - bearer: []
+      summary: Curricula for a World with sequence counts and computed completion.
+      tags: &ref_10
+        - curriculums
+    post:
+      operationId: WorldCurriculumsController_create
+      parameters:
+        - name: worldId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCurriculumDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumSummaryDto'
+        '404':
+          description: Unknown World.
+      security: *ref_9
+      summary: Create a Curriculum for a World.
+      tags: *ref_10
+  /api/curriculums/{curriculumId}:
+    get:
+      operationId: CurriculumsController_detail
+      parameters:
+        - name: curriculumId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumDetailDto'
+        '404':
+          description: Unknown Curriculum.
+      security: &ref_11
+        - bearer: []
+      summary: Curriculum detail with ordered Sequences and their Trick roles.
+      tags: &ref_12
+        - curriculums
+    patch:
+      operationId: CurriculumsController_update
+      parameters:
+        - name: curriculumId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCurriculumDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurriculumDetailDto'
+        '404':
+          description: Unknown Curriculum.
+      security: *ref_11
+      summary: Update Curriculum name/description/version/status.
+      tags: *ref_12
+  /api/curriculums/{curriculumId}/sequences:
+    post:
+      operationId: CurriculumsController_createSequence
+      parameters:
+        - name: curriculumId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSequenceDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SequenceDetailDto'
+        '404':
+          description: Unknown Curriculum.
+      security: *ref_11
+      summary: Create a Sequence at the next sequenceNumber.
+      tags: *ref_12
+  /api/curriculums/{curriculumId}/sequences/order:
+    put:
+      operationId: CurriculumsController_reorderSequences
+      parameters:
+        - name: curriculumId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReorderResponseDto'
+        '404':
+          description: Unknown Curriculum.
+      security: *ref_11
+      summary: Reorder a Curriculum’s Sequences by an explicit ordered id array.
+      tags: *ref_12
+  /api/sequences/{sequenceId}:
+    patch:
+      operationId: SequencesController_update
+      parameters:
+        - name: sequenceId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSequenceDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SequenceDetailDto'
+        '404':
+          description: Unknown Sequence.
+      security: &ref_13
+        - bearer: []
+      summary: Update Sequence name/objective/difficulty description/status.
+      tags: &ref_14
+        - sequences
+  /api/sequences/{sequenceId}/tricks:
+    put:
+      operationId: SequencesController_setTricks
+      parameters:
+        - name: sequenceId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetSequenceTricksDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SequenceDetailDto'
+        '404':
+          description: Unknown Sequence.
+      security: *ref_13
+      summary: Set/replace the ordered Trick role assignment list.
+      tags: *ref_14
+  /api/fact-types:
+    get:
+      operationId: FactTypesController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FactTypeDto'
+      security:
+        - bearer: []
+      summary: Typed Fact registry metadata (factType names and field hints).
+      tags:
+        - fact-types
+  /api/families:
+    get:
+      operationId: FamiliesController_list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamilySummaryDto'
+      security: &ref_15
+        - bearer: []
+      summary: List Families with type and Fact counts.
+      tags: &ref_16
+        - families
+    post:
+      operationId: FamiliesController_create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFamilyDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyDetailDto'
+        '404':
+          description: Unknown bound/trigger World.
+      security: *ref_15
+      summary: Create a Nitty Gritty Family.
+      tags: *ref_16
+  /api/families/{familyId}:
+    get:
+      operationId: FamiliesController_detail
+      parameters:
+        - name: familyId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyDetailDto'
+        '404':
+          description: Unknown Family.
+      security: *ref_15
+      summary: Family detail with its ordered Facts.
+      tags: *ref_16
+    patch:
+      operationId: FamiliesController_update
+      parameters:
+        - name: familyId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFamilyDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyDetailDto'
+        '404':
+          description: Unknown Family.
+      security: *ref_15
+      summary: Update name/type/recurrence/threshold/World bindings.
+      tags: *ref_16
+  /api/families/{familyId}/facts:
+    post:
+      operationId: FamiliesController_createFact
+      parameters:
+        - name: familyId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFactDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDetailDto'
+        '404':
+          description: Unknown Family.
+      security: *ref_15
+      summary: Create a Fact at the next order with its first snapshot.
+      tags: *ref_16
+  /api/families/{familyId}/facts/order:
+    put:
+      operationId: FamiliesController_reorderFacts
+      parameters:
+        - name: familyId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderFactsDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderedIdsResponseDto'
+        '404':
+          description: Unknown Family.
+      security: *ref_15
+      summary: Reorder a Family’s Facts by an explicit ordered id array.
+      tags: *ref_16
+  /api/facts/{factId}:
+    get:
+      operationId: FactsController_detail
+      parameters:
+        - name: factId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDetailDto'
+        '404':
+          description: Unknown Fact.
+      security: &ref_17
+        - bearer: []
+      summary: Fact detail with typed data and validation state.
+      tags: &ref_18
+        - facts
+    patch:
+      operationId: FactsController_update
+      parameters:
+        - name: factId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFactDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDetailDto'
+        '404':
+          description: Unknown Fact.
+      security: *ref_17
+      summary: Update a Fact (writes an attributed snapshot).
+      tags: *ref_18
+  /api/facts/{factId}/versions:
+    get:
+      operationId: FactsController_versions
+      parameters:
+        - name: factId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FactVersionDto'
+        '404':
+          description: Unknown Fact.
+      security: *ref_17
+      summary: Fact snapshot history, newest first.
+      tags: *ref_18
+  /api/sequences/{sequenceId}/insertions:
+    get:
+      operationId: InsertionsController_list
+      parameters:
+        - name: sequenceId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InsertionDto'
+        '404':
+          description: Unknown Sequence.
+      security: &ref_19
+        - bearer: []
+      summary: Ordered Nitty Gritty insertions for a Sequence.
+      tags: &ref_20
+        - insertions
+    put:
+      operationId: InsertionsController_replace
+      parameters:
+        - name: sequenceId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetInsertionsDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/InsertionDto'
+        '404':
+          description: Unknown Sequence or Fact.
+      security: *ref_19
+      summary: Set/replace the ordered insertion list for a Sequence.
+      tags: *ref_20
+  /api/tricks/{trickId}/vetting:
+    put:
+      operationId: TrustTricksController_setVetting
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetTrickVettingDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick.
+      security: &ref_21
+        - bearer: []
+      summary: Set Trick vetting status; VERIFIED requires all three fields (D-041).
+      tags: &ref_22
+        - tricks
+  /api/tricks/{trickId}/review:
+    put:
+      operationId: TrustTricksController_setReview
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetReviewDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick.
+      security: *ref_21
+      summary: Set Trick review status (human approval; D-042).
+      tags: *ref_22
+  /api/tricks/{trickId}/publish:
+    post:
+      operationId: TrustTricksController_publish
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick.
+        '409':
+          description: Trick is not ready to publish.
+      security: *ref_21
+      summary: Publish a Trick; validates the atomic publication gate (D-043).
+      tags: *ref_22
+  /api/tricks/{trickId}/unpublish:
+    post:
+      operationId: TrustTricksController_unpublish
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick.
+      security: *ref_21
+      summary: Clear a Trick’s publishedAt.
+      tags: *ref_22
+  /api/tricks/{trickId}/comments:
+    get:
+      operationId: TrustTricksController_listComments
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentDto'
+        '404':
+          description: Unknown Trick.
+      security: *ref_21
+      summary: Threaded comments for a Trick, oldest first.
+      tags: *ref_22
+    post:
+      operationId: TrustTricksController_createComment
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommentDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentDto'
+        '404':
+          description: Unknown Trick.
+      security: *ref_21
+      summary: Add a comment or threaded reply (any Staff/Admin).
+      tags: *ref_22
+  /api/tricks/{trickId}/versions/{versionId}/restore:
+    post:
+      operationId: TrustTricksController_restoreVersion
+      parameters:
+        - name: trickId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: versionId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown Trick or version.
+      security: *ref_21
+      summary: Restore a prior Trick version as a new audited mutation (D-044).
+      tags: *ref_22
+  /api/trick-variants/{variantId}/review:
+    put:
+      operationId: TrustVariantsController_setReview
+      parameters:
+        - name: variantId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetReviewDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrickDetailDto'
+        '404':
+          description: Unknown variant.
+      security:
+        - bearer: []
+      summary: Set a content variant’s review status (human approval; D-042).
+      tags:
+        - tricks
+  /api/comments/{commentId}:
+    patch:
+      operationId: TrustCommentsController_update
+      parameters:
+        - name: commentId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCommentDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentDto'
+        '404':
+          description: Unknown comment.
+      security:
+        - bearer: []
+      summary: Resolve/reopen or reassign a comment (comment.coordinate; D-045).
+      tags:
+        - comments
+  /api/facts/{factId}/vetting:
+    put:
+      operationId: TrustFactsController_setVetting
+      parameters:
+        - name: factId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetFactVettingDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDetailDto'
+        '404':
+          description: Unknown Fact.
+      security: &ref_23
+        - bearer: []
+      summary: Set a Fact vetting status (D-041).
+      tags: &ref_24
+        - facts
+  /api/facts/{factId}/review:
+    put:
+      operationId: TrustFactsController_setReview
+      parameters:
+        - name: factId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetReviewDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDetailDto'
+        '404':
+          description: Unknown Fact.
+      security: *ref_23
+      summary: Set a Fact review status (human approval; D-042).
+      tags: *ref_24
+  /api/facts/{factId}/publish:
+    post:
+      operationId: TrustFactsController_publish
+      parameters:
+        - name: factId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDetailDto'
+        '404':
+          description: Unknown Fact.
+        '409':
+          description: Fact is not ready to publish.
+      security: *ref_23
+      summary: Publish a Fact; validates the atomic publication gate (D-043).
+      tags: *ref_24
+  /api/facts/{factId}/versions/{versionId}/restore:
+    post:
+      operationId: TrustFactsController_restoreVersion
+      parameters:
+        - name: factId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: versionId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDetailDto'
+        '404':
+          description: Unknown Fact or version.
+      security: *ref_23
+      summary: Restore a prior Fact version as a new audited mutation (D-044).
+      tags: *ref_24
+  /api/ops/completion:
+    get:
+      operationId: OpsController_completion
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionReportDto'
+        '403': &ref_25
+          description: Admin access required.
+      security: &ref_26
+        - bearer: []
+      summary: Per-World verified/publication-ready counts and percentages.
+      tags: &ref_27
+        - ops
+  /api/ops/activity:
+    get:
+      operationId: OpsController_activity
+      parameters:
+        - name: limit
+          required: false
+          in: query
+          description: Page size (bounded).
+          schema:
+            minimum: 1
+            maximum: 100
+            default: 25
+            type: number
+        - name: offset
+          required: false
+          in: query
+          description: Rows to skip.
+          schema:
+            minimum: 0
+            maximum: 10000
+            default: 0
+            type: number
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityPageDto'
+        '403': *ref_25
+      security: *ref_26
+      summary: Newest-first recent content mutations, bounded and paginated.
+      tags: *ref_27
+  /health:
+    get:
+      operationId: HealthController_check
+      parameters: []
+      responses:
+        '200':
+          description: Service status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponseDto'
+      summary: Liveness plus a database state read (always 200).
+      tags: &ref_28
+        - health
+  /health/ready:
+    get:
+      operationId: HealthController_ready
+      parameters: []
+      responses:
+        '200':
+          description: Database reachable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponseDto'
+        '503':
+          description: Database unreachable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponseDto'
+      summary: 'Readiness: 200 when the database is reachable, 503 otherwise.'
+      tags: *ref_28
+info:
+  title: MathsAlot Studio API
+  description: Internal curriculum-authoring API. Authenticated Admin and Staff users only; learner accounts have no access.
+  version: 0.0.0
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: Short-lived HS256 access token from POST /api/auth/login.
+  schemas:
+    LoginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: admin@mathsalot.example
+          format: email
+        password:
+          type: string
+          minLength: 1
+          maxLength: 200
+          writeOnly: true
+      required:
+        - email
+        - password
+    SessionUserDto:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        role:
+          type: string
+          enum: &ref_29
+            - ADMIN
+            - STAFF
+            - LEARNER
+        isAdmin:
+          type: boolean
+          description: True for Admin accounts, which bypass permission grants.
+        permissions:
+          description: Effective permission keys.
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - email
+        - displayName
+        - role
+        - isAdmin
+        - permissions
+    AuthSessionDto:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Short-lived HS256 access token.
+        refreshToken:
+          type: string
+          description: Opaque refresh token. Store server-side only.
+          writeOnly: true
+        tokenType:
+          type: string
+          enum:
+            - Bearer
+          example: Bearer
+        expiresIn:
+          type: number
+          description: Access token lifetime in seconds.
+          example: 900
+        user:
+          $ref: '#/components/schemas/SessionUserDto'
+      required:
+        - accessToken
+        - refreshToken
+        - tokenType
+        - expiresIn
+        - user
+    RefreshTokenDto:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+          description: Opaque refresh token issued by login or refresh.
+          writeOnly: true
+      required:
+        - refreshToken
+    LogoutResponseDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum:
+            - true
+          example: true
+      required:
+        - success
+    MeDto:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        role:
+          type: string
+          enum: *ref_29
+        isAdmin:
+          type: boolean
+        permissions:
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - email
+        - displayName
+        - role
+        - isAdmin
+        - permissions
+    UserSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+        role:
+          type: string
+          enum: *ref_29
+        createdAt:
+          type: string
+          format: date-time
+        lastLoginAt:
+          type: string
+          format: date-time
+          nullable: true
+        permissions:
+          description: Granted permission keys.
+          type: array
+          items:
+            type: string
+      required:
+        - id
+        - email
+        - displayName
+        - role
+        - createdAt
+        - lastLoginAt
+        - permissions
+    CreateUserDto:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 120
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - STAFF
+        password:
+          type: string
+          minLength: 12
+          maxLength: 200
+          writeOnly: true
+      required:
+        - email
+        - displayName
+        - role
+        - password
+    ResetUserPasswordDto:
+      type: object
+      properties:
+        password:
+          type: string
+          minLength: 12
+          maxLength: 200
+          writeOnly: true
+      required:
+        - password
+    ResetPasswordResponseDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum:
+            - true
+          example: true
+        revokedSessions:
+          type: number
+          description: Number of the target user’s sessions revoked.
+      required:
+        - success
+        - revokedSessions
+    UserPermissionDto:
+      type: object
+      properties:
+        key:
+          type: string
+          example: trick.content.write
+        label:
+          type: string
+          example: Write Trick wording, scenarios, and worked examples per age tier
+        grantedAt:
+          type: string
+          format: date-time
+      required:
+        - key
+        - label
+        - grantedAt
+    GrantPermissionDto:
+      type: object
+      properties:
+        key:
+          type: string
+          example: trick.content.write
+      required:
+        - key
+    RevokePermissionResponseDto:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum:
+            - true
+          example: true
+        removed:
+          type: boolean
+          description: True when a grant existed and was removed.
+      required:
+        - success
+        - removed
+    PermissionDto:
+      type: object
+      properties:
+        key:
+          type: string
+          example: trick.content.write
+        label:
+          type: string
+          example: Write Trick wording, scenarios, and worked examples per age tier
+      required:
+        - key
+        - label
+    WorldRollupDto:
+      type: object
+      properties:
+        trickCount:
+          type: number
+        completeTrickCount:
+          type: number
+        readyTrickCount:
+          type: number
+        completionPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+      required:
+        - trickCount
+        - completeTrickCount
+        - readyTrickCount
+        - completionPercent
+    CompletenessDto:
+      type: object
+      properties:
+        variantCount:
+          type: number
+          minimum: 0
+          maximum: 3
+        totalTiers:
+          type: number
+          example: 3
+        missingTiers:
+          type: array
+          items:
+            type: string
+            enum: &ref_30
+              - FORMATIVE
+              - MIDRANGE
+              - MATURE
+        isComplete:
+          type: boolean
+        isReady:
+          type: boolean
+          description: Complete, verified, approved, and all variants approved.
+      required:
+        - variantCount
+        - totalTiers
+        - missingTiers
+        - isComplete
+        - isReady
+    TrickSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        kind:
+          type: string
+          enum: &ref_31
+            - STANDARD
+            - CAPSTONE
+        position:
+          type: number
+        completeness:
+          $ref: '#/components/schemas/CompletenessDto'
+      required:
+        - id
+        - name
+        - kind
+        - position
+        - completeness
+    WorldSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        order:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        rollup:
+          $ref: '#/components/schemas/WorldRollupDto'
+        tricks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrickSummaryDto'
+      required:
+        - id
+        - name
+        - description
+        - order
+        - createdAt
+        - updatedAt
+        - rollup
+        - tricks
+    CreateWorldDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+      required:
+        - name
+    ReorderDto:
+      type: object
+      properties:
+        orderedIds:
+          description: Every current member id, in the desired 1..n order.
+          type: array
+          items:
+            type: string
+      required:
+        - orderedIds
+    ReorderResponseDto:
+      type: object
+      properties:
+        orderedIds:
+          type: array
+          items:
+            type: string
+      required:
+        - orderedIds
+    UpdateWorldDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+    VariantDto:
+      type: object
+      properties:
+        id:
+          type: string
+        ageTier:
+          type: string
+          enum: *ref_30
+        wording:
+          type: string
+        scenario:
+          type: string
+        readingLevel:
+          type: string
+          nullable: true
+        draftSource:
+          type: string
+          enum: &ref_32
+            - HUMAN
+            - AI
+        reviewStatus:
+          type: string
+          enum: &ref_33
+            - NEEDS_REVIEW
+            - APPROVED
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - ageTier
+        - wording
+        - scenario
+        - readingLevel
+        - draftSource
+        - reviewStatus
+        - updatedAt
+    TrickDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+        worldId:
+          type: string
+        name:
+          type: string
+        kind:
+          type: string
+          enum: *ref_31
+        position:
+          type: number
+        methodDescription:
+          type: string
+        workedExample:
+          type: string
+          nullable: true
+        vettingStatus:
+          type: string
+          enum: &ref_37
+            - DRAFT
+            - UNDER_REVIEW
+            - VERIFIED
+            - NEEDS_REVISION
+        vettingValidity:
+          type: string
+          nullable: true
+          description: Required before VERIFIED (D-041).
+        vettingDomain:
+          type: string
+          nullable: true
+          description: Required before VERIFIED (D-041).
+        vettingEdgeCases:
+          type: string
+          nullable: true
+          description: Required before VERIFIED (D-041).
+        draftSource:
+          type: string
+          enum: *ref_32
+        reviewStatus:
+          type: string
+          enum: *ref_33
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantDto'
+        completeness:
+          $ref: '#/components/schemas/CompletenessDto'
+      required:
+        - id
+        - worldId
+        - name
+        - kind
+        - position
+        - methodDescription
+        - workedExample
+        - vettingStatus
+        - vettingValidity
+        - vettingDomain
+        - vettingEdgeCases
+        - draftSource
+        - reviewStatus
+        - publishedAt
+        - createdAt
+        - updatedAt
+        - variants
+        - completeness
+    UpdateTrickDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        kind:
+          type: string
+          enum: *ref_31
+        methodDescription:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        workedExample:
+          type: string
+          nullable: true
+          maxLength: 8000
+    UpsertVariantDto:
+      type: object
+      properties:
+        wording:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        scenario:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        readingLevel:
+          type: string
+          nullable: true
+          maxLength: 200
+        draftSource:
+          type: string
+          enum: *ref_32
+          description: AI drafts default to NEEDS_REVIEW and stay blocked until approved (D-042).
+      required:
+        - wording
+        - scenario
+    PreviewDto:
+      type: object
+      properties:
+        trickId:
+          type: string
+        ageTier:
+          type: string
+          enum: *ref_30
+        wording:
+          type: string
+        scenario:
+          type: string
+        readingLevel:
+          type: string
+          nullable: true
+      required:
+        - trickId
+        - ageTier
+        - wording
+        - scenario
+        - readingLevel
+    TrickVersionDto:
+      type: object
+      properties:
+        id:
+          type: string
+        trickId:
+          type: string
+        editedById:
+          type: string
+        editedAt:
+          type: string
+          format: date-time
+        snapshot:
+          type: object
+          additionalProperties: true
+          description: Full Trick snapshot captured at this revision.
+      required:
+        - id
+        - trickId
+        - editedById
+        - editedAt
+        - snapshot
+    CreateTrickDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        kind:
+          type: string
+          enum: *ref_31
+          default: STANDARD
+        methodDescription:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        workedExample:
+          type: string
+          nullable: true
+          maxLength: 8000
+        draftSource:
+          type: string
+          enum: *ref_32
+          default: HUMAN
+          description: AI drafts default to NEEDS_REVIEW and stay blocked until approved (D-042).
+      required:
+        - name
+        - methodDescription
+    CurriculumCompletionDto:
+      type: object
+      properties:
+        sequenceCount:
+          type: number
+        completeSequenceCount:
+          type: number
+        assignmentCount:
+          type: number
+        coveredTrickCount:
+          type: number
+        introduceCount:
+          type: number
+        retainCount:
+          type: number
+        revisitCount:
+          type: number
+        completionPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+      required:
+        - sequenceCount
+        - completeSequenceCount
+        - assignmentCount
+        - coveredTrickCount
+        - introduceCount
+        - retainCount
+        - revisitCount
+        - completionPercent
+    CurriculumSummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        worldId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        version:
+          type: string
+        status:
+          type: string
+          enum: &ref_34
+            - DRAFT
+            - ACTIVE
+            - ARCHIVED
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completion:
+          $ref: '#/components/schemas/CurriculumCompletionDto'
+      required:
+        - id
+        - worldId
+        - name
+        - description
+        - version
+        - status
+        - createdAt
+        - updatedAt
+        - completion
+    CreateCurriculumDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        version:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Version label, e.g. "v1".
+        status:
+          type: string
+          enum: *ref_34
+          default: DRAFT
+      required:
+        - name
+        - version
+    SequenceCompletionDto:
+      type: object
+      properties:
+        assignmentCount:
+          type: number
+        introduceCount:
+          type: number
+        retainCount:
+          type: number
+        revisitCount:
+          type: number
+        isComplete:
+          type: boolean
+      required:
+        - assignmentCount
+        - introduceCount
+        - retainCount
+        - revisitCount
+        - isComplete
+    SequenceTrickDto:
+      type: object
+      properties:
+        id:
+          type: string
+        trickId:
+          type: string
+        role:
+          type: string
+          enum: &ref_35
+            - INTRODUCE
+            - RETAIN
+            - REVISIT
+        position:
+          type: number
+      required:
+        - id
+        - trickId
+        - role
+        - position
+    SequenceDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+        curriculumId:
+          type: string
+        sequenceNumber:
+          type: number
+        name:
+          type: string
+        objective:
+          type: string
+        description:
+          type: string
+          nullable: true
+        difficultyDescription:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: *ref_34
+        completion:
+          $ref: '#/components/schemas/SequenceCompletionDto'
+        tricks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceTrickDto'
+      required:
+        - id
+        - curriculumId
+        - sequenceNumber
+        - name
+        - objective
+        - description
+        - difficultyDescription
+        - status
+        - completion
+        - tricks
+    CurriculumDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+        worldId:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        version:
+          type: string
+        status:
+          type: string
+          enum: *ref_34
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        completion:
+          $ref: '#/components/schemas/CurriculumCompletionDto'
+        sequences:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceDetailDto'
+      required:
+        - id
+        - worldId
+        - name
+        - description
+        - version
+        - status
+        - createdAt
+        - updatedAt
+        - completion
+        - sequences
+    UpdateCurriculumDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        version:
+          type: string
+          minLength: 1
+          maxLength: 50
+        status:
+          type: string
+          enum: *ref_34
+    CreateSequenceDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        objective:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        difficultyDescription:
+          type: string
+          nullable: true
+          maxLength: 500
+        status:
+          type: string
+          enum: *ref_34
+          default: DRAFT
+      required:
+        - name
+        - objective
+    UpdateSequenceDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        objective:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        difficultyDescription:
+          type: string
+          nullable: true
+          maxLength: 500
+        status:
+          type: string
+          enum: *ref_34
+    SequenceTrickAssignmentDto:
+      type: object
+      properties:
+        trickId:
+          type: string
+        role:
+          type: string
+          enum: *ref_35
+        position:
+          type: number
+          minimum: 1
+          description: 1..n position; the full list must be gap-free.
+      required:
+        - trickId
+        - role
+        - position
+    SetSequenceTricksDto:
+      type: object
+      properties:
+        tricks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SequenceTrickAssignmentDto'
+      required:
+        - tricks
+    FactFieldDto:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - string
+            - number
+            - string[]
+        required:
+          type: boolean
+        description:
+          type: string
+      required:
+        - name
+        - type
+        - required
+        - description
+    FactTypeDto:
+      type: object
+      properties:
+        type:
+          type: string
+        description:
+          type: string
+        fields:
+          type: array
+          items:
+            $ref: '#/components/schemas/FactFieldDto'
+      required:
+        - type
+        - description
+        - fields
+    FamilySummaryDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: &ref_36
+            - WORLD_BOUND
+            - GLOBAL
+        boundWorldId:
+          type: string
+          nullable: true
+        triggerWorldId:
+          type: string
+          nullable: true
+        recurrenceInitialInterval:
+          type: number
+        recurrenceGrowthFactor:
+          type: number
+        instantRecallThresholdMs:
+          type: number
+        factCount:
+          type: number
+          description: Number of Facts in this Family.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - type
+        - boundWorldId
+        - triggerWorldId
+        - recurrenceInitialInterval
+        - recurrenceGrowthFactor
+        - instantRecallThresholdMs
+        - factCount
+        - createdAt
+        - updatedAt
+    CreateFamilyDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          type: string
+          enum: *ref_36
+        boundWorldId:
+          type: string
+          nullable: true
+          description: WORLD_BOUND only.
+        triggerWorldId:
+          type: string
+          nullable: true
+          description: GLOBAL only.
+        recurrenceInitialInterval:
+          type: number
+          minimum: 1
+        recurrenceGrowthFactor:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          description: Must be greater than zero.
+        instantRecallThresholdMs:
+          type: number
+          minimum: 1
+      required:
+        - name
+        - type
+        - recurrenceInitialInterval
+        - recurrenceGrowthFactor
+        - instantRecallThresholdMs
+    FactValidationDto:
+      type: object
+      properties:
+        valid:
+          type: boolean
+          description: Whether the stored structured data validates against its type.
+        errors:
+          type: array
+          items:
+            type: string
+      required:
+        - valid
+        - errors
+    FactDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+        familyId:
+          type: string
+        order:
+          type: number
+        factType:
+          type: string
+          enum: &ref_38
+            - operation
+            - equivalence
+            - calendar
+        data:
+          type: object
+          additionalProperties: true
+          description: Structured data validated against `factType`.
+        factText:
+          type: string
+        numberRangeMin:
+          type: number
+          nullable: true
+        numberRangeMax:
+          type: number
+          nullable: true
+        gatingRequired:
+          type: boolean
+        vettingStatus:
+          type: string
+          enum: *ref_37
+        draftSource:
+          type: string
+          enum: *ref_32
+        reviewStatus:
+          type: string
+          enum: *ref_33
+        publishedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        validation:
+          $ref: '#/components/schemas/FactValidationDto'
+      required:
+        - id
+        - familyId
+        - order
+        - factType
+        - data
+        - factText
+        - numberRangeMin
+        - numberRangeMax
+        - gatingRequired
+        - vettingStatus
+        - draftSource
+        - reviewStatus
+        - publishedAt
+        - createdAt
+        - updatedAt
+        - validation
+    FamilyDetailDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: *ref_36
+        boundWorldId:
+          type: string
+          nullable: true
+        triggerWorldId:
+          type: string
+          nullable: true
+        recurrenceInitialInterval:
+          type: number
+        recurrenceGrowthFactor:
+          type: number
+        instantRecallThresholdMs:
+          type: number
+        factCount:
+          type: number
+          description: Number of Facts in this Family.
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        facts:
+          description: Facts in deterministic 1..n order.
+          type: array
+          items:
+            $ref: '#/components/schemas/FactDetailDto'
+      required:
+        - id
+        - name
+        - type
+        - boundWorldId
+        - triggerWorldId
+        - recurrenceInitialInterval
+        - recurrenceGrowthFactor
+        - instantRecallThresholdMs
+        - factCount
+        - createdAt
+        - updatedAt
+        - facts
+    UpdateFamilyDto:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          type: string
+          enum: *ref_36
+        boundWorldId:
+          type: string
+          nullable: true
+        triggerWorldId:
+          type: string
+          nullable: true
+        recurrenceInitialInterval:
+          type: number
+          minimum: 1
+        recurrenceGrowthFactor:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+          description: Must be greater than zero.
+        instantRecallThresholdMs:
+          type: number
+          minimum: 1
+    CreateFactDto:
+      type: object
+      properties:
+        factType:
+          type: string
+          enum: *ref_38
+        data:
+          type: object
+          additionalProperties: true
+          description: Validated against the registered `factType` schema.
+        factText:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        numberRangeMin:
+          type: number
+          nullable: true
+          description: WORLD_BOUND Facts only.
+        numberRangeMax:
+          type: number
+          nullable: true
+          description: WORLD_BOUND Facts only.
+        gatingRequired:
+          type: boolean
+          default: false
+        draftSource:
+          type: string
+          enum: *ref_32
+          default: HUMAN
+          description: AI drafts default to NEEDS_REVIEW and stay blocked until approved (D-042).
+      required:
+        - factType
+        - data
+        - factText
+    ReorderFactsDto:
+      type: object
+      properties:
+        orderedIds:
+          description: Every current Fact id, in the desired 1..n order.
+          type: array
+          items:
+            type: string
+      required:
+        - orderedIds
+    OrderedIdsResponseDto:
+      type: object
+      properties:
+        orderedIds:
+          type: array
+          items:
+            type: string
+      required:
+        - orderedIds
+    UpdateFactDto:
+      type: object
+      properties:
+        factType:
+          type: string
+          enum: *ref_38
+        data:
+          type: object
+          additionalProperties: true
+          description: Validated against the effective `factType`.
+        factText:
+          type: string
+          minLength: 1
+          maxLength: 1000
+        numberRangeMin:
+          type: number
+          nullable: true
+        numberRangeMax:
+          type: number
+          nullable: true
+        gatingRequired:
+          type: boolean
+    FactVersionDto:
+      type: object
+      properties:
+        id:
+          type: string
+        factId:
+          type: string
+        editedById:
+          type: string
+        editedAt:
+          type: string
+          format: date-time
+        snapshot:
+          type: object
+          additionalProperties: true
+          description: Full Fact snapshot captured at this revision.
+      required:
+        - id
+        - factId
+        - editedById
+        - editedAt
+        - snapshot
+    InsertionDto:
+      type: object
+      properties:
+        id:
+          type: string
+        sequenceId:
+          type: string
+        factId:
+          type: string
+        insertionType:
+          type: string
+          enum: &ref_39
+            - gating
+            - alongside
+        position:
+          type: number
+      required:
+        - id
+        - sequenceId
+        - factId
+        - insertionType
+        - position
+    InsertionInputDto:
+      type: object
+      properties:
+        factId:
+          type: string
+        insertionType:
+          type: string
+          enum: *ref_39
+        position:
+          type: number
+          minimum: 1
+          description: 1..n position; the full list must be gap-free.
+      required:
+        - factId
+        - insertionType
+        - position
+    SetInsertionsDto:
+      type: object
+      properties:
+        insertions:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsertionInputDto'
+      required:
+        - insertions
+    SetTrickVettingDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: *ref_37
+        vettingValidity:
+          type: string
+          nullable: true
+          maxLength: 8000
+          description: Required (non-empty) before status may be VERIFIED (D-041).
+        vettingDomain:
+          type: string
+          nullable: true
+          maxLength: 8000
+          description: Required (non-empty) before status may be VERIFIED (D-041).
+        vettingEdgeCases:
+          type: string
+          nullable: true
+          maxLength: 8000
+          description: Required (non-empty) before status may be VERIFIED (D-041).
+      required:
+        - status
+    SetReviewDto:
+      type: object
+      properties:
+        reviewStatus:
+          type: string
+          enum: *ref_33
+      required:
+        - reviewStatus
+    CommentDto:
+      type: object
+      properties:
+        id:
+          type: string
+        trickId:
+          type: string
+        parentCommentId:
+          type: string
+          nullable: true
+        authorId:
+          type: string
+        body:
+          type: string
+        status:
+          type: string
+          enum: &ref_40
+            - OPEN
+            - RESOLVED
+        assignedToId:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        replies:
+          description: Direct replies, oldest first.
+          type: array
+          items:
+            $ref: '#/components/schemas/CommentDto'
+      required:
+        - id
+        - trickId
+        - parentCommentId
+        - authorId
+        - body
+        - status
+        - assignedToId
+        - createdAt
+        - updatedAt
+        - replies
+    CreateCommentDto:
+      type: object
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 8000
+        parentCommentId:
+          type: string
+          nullable: true
+          description: Parent comment for a threaded reply; must belong to the same Trick.
+      required:
+        - body
+    UpdateCommentDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: *ref_40
+        assignedToId:
+          type: string
+          nullable: true
+          description: Staff/Admin user to assign; null clears the assignee.
+    SetFactVettingDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: *ref_37
+      required:
+        - status
+    WorldCompletionDto:
+      type: object
+      properties:
+        worldId:
+          type: string
+        worldName:
+          type: string
+        order:
+          type: number
+          description: World ordering, ascending.
+        totalTricks:
+          type: number
+        verifiedTricks:
+          type: number
+          description: Tricks with vetting status VERIFIED.
+        publishedTricks:
+          type: number
+          description: Tricks with publishedAt set (publication-ready).
+        verifiedPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+        publishedPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+      required:
+        - worldId
+        - worldName
+        - order
+        - totalTricks
+        - verifiedTricks
+        - publishedTricks
+        - verifiedPercent
+        - publishedPercent
+    CompletionSummaryDto:
+      type: object
+      properties:
+        totalTricks:
+          type: number
+        verifiedTricks:
+          type: number
+        publishedTricks:
+          type: number
+        verifiedPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+        publishedPercent:
+          type: number
+          minimum: 0
+          maximum: 100
+      required:
+        - totalTricks
+        - verifiedTricks
+        - publishedTricks
+        - verifiedPercent
+        - publishedPercent
+    CompletionReportDto:
+      type: object
+      properties:
+        worlds:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorldCompletionDto'
+        overall:
+          $ref: '#/components/schemas/CompletionSummaryDto'
+      required:
+        - worlds
+        - overall
+    ActivityActorDto:
+      type: object
+      properties:
+        id:
+          type: string
+        displayName:
+          type: string
+      required:
+        - id
+        - displayName
+    ActivityItemDto:
+      type: object
+      properties:
+        id:
+          type: string
+        action:
+          type: string
+          example: trick.vetting.updated
+        targetType:
+          type: string
+          nullable: true
+          example: Trick
+        targetId:
+          type: string
+          nullable: true
+        occurredAt:
+          type: string
+          format: date-time
+        actor:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/ActivityActorDto'
+      required:
+        - id
+        - action
+        - targetType
+        - targetId
+        - occurredAt
+        - actor
+    ActivityPageDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityItemDto'
+        total:
+          type: number
+          description: Total content mutations available.
+        limit:
+          type: number
+        offset:
+          type: number
+        hasMore:
+          type: boolean
+      required:
+        - items
+        - total
+        - limit
+        - offset
+        - hasMore
+    HealthResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - degraded
+          example: ok
+        database:
+          type: string
+          enum:
+            - up
+            - down
+          example: up
+        timestamp:
+          type: string
+          format: date-time
+          example: '2026-01-01T00:00:00.000Z'
+      required:
+        - status
+        - database
+        - timestamp

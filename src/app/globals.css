@@ -38,6 +38,9 @@
   --surface-muted: #f1f3f2;
   --border: #d7ddd8;
   --border-strong: #b4beb6;
+  /* Perceivable boundary for interactive controls (WCAG 2.2 SC 1.4.11, >= 3:1
+     against every surface). Decorative/structural borders keep --border. */
+  --border-input: #7c8a80;
   --input: #d7ddd8;
   --ring: #14532d;
 
@@ -112,6 +115,7 @@
   --color-surface-muted: var(--surface-muted);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  --color-border-input: var(--border-input);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-destructive: var(--destructive);
@@ -188,9 +192,11 @@
   }
 }
 
-/* Respect reduced-motion: loading spinners collapse to a static glyph (F-05). */
+/* Respect reduced-motion: loading spinners collapse to a static glyph (F-05)
+   and skeleton placeholders stop pulsing (Phase 03b B-07). */
 @media (prefers-reduced-motion: reduce) {
-  .animate-spin {
+  .animate-spin,
+  .animate-pulse {
     animation: none;
   }
 }

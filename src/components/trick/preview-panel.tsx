@@ -49,7 +49,7 @@ export function PreviewPanel({ trickId, ageTier, tierLabel }: PreviewPanelProps)
     <Card className="mt-6 bg-surface-muted">
       <CardHeader>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-heading-2 font-semibold text-foreground">{tierLabel} preview</h4>
+          <h3 className="text-heading-2 font-semibold text-foreground">{tierLabel} preview</h3>
           <Button
             type="button"
             variant="outline"
