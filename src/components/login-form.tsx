@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useRef, useState, type FormEvent } from 'react';
-import { LogIn } from 'lucide-react';
+import { Loader2, LogIn } from 'lucide-react';
 
 import { ErrorAlert } from '@/components/error-alert';
 import { Button } from '@/components/ui/button';
@@ -144,13 +144,12 @@ export function LoginForm({ nextPath, initialError = null }: LoginFormProps) {
         ) : null}
       </div>
 
-      <Button
-        type="submit"
-        disabled={pending}
-        aria-busy={pending}
-        className="h-11 w-full sm:h-8 sm:w-auto"
-      >
-        <LogIn aria-hidden="true" />
+      <Button type="submit" disabled={pending} aria-busy={pending} className="h-11 w-full md:h-8">
+        {pending ? (
+          <Loader2 aria-hidden="true" className="animate-spin" />
+        ) : (
+          <LogIn aria-hidden="true" />
+        )}
         {pending ? 'Signing in…' : 'Sign in'}
       </Button>
     </form>

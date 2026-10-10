@@ -171,7 +171,7 @@ export function LoginBrandPanel() {
                 type="button"
                 onClick={() => goTo(index - 1)}
                 aria-label="Previous capability"
-                className="inline-flex size-9 items-center justify-center rounded-md border border-sidebar-muted text-sidebar-foreground transition-colors hover:bg-sidebar-muted"
+                className="inline-flex size-9 items-center justify-center rounded-md border border-sidebar-muted text-sidebar-foreground transition-colors hover:bg-sidebar-muted focus-visible:outline-sidebar-ring active:bg-sidebar-muted"
               >
                 <ChevronLeft aria-hidden="true" className="size-4" />
               </button>
@@ -179,7 +179,7 @@ export function LoginBrandPanel() {
                 type="button"
                 onClick={() => goTo(index + 1)}
                 aria-label="Next capability"
-                className="inline-flex size-9 items-center justify-center rounded-md border border-sidebar-muted text-sidebar-foreground transition-colors hover:bg-sidebar-muted"
+                className="inline-flex size-9 items-center justify-center rounded-md border border-sidebar-muted text-sidebar-foreground transition-colors hover:bg-sidebar-muted focus-visible:outline-sidebar-ring active:bg-sidebar-muted"
               >
                 <ChevronRight aria-hidden="true" className="size-4" />
               </button>
@@ -194,14 +194,14 @@ export function LoginBrandPanel() {
                         onClick={() => goTo(dotIndex)}
                         aria-label={`Show ${capability.title}`}
                         aria-current={active ? 'true' : undefined}
-                        className="group flex size-6 items-center justify-center rounded-full"
+                        className="group flex size-6 items-center justify-center rounded-full focus-visible:outline-sidebar-ring"
                       >
                         <span
                           className={cn(
-                            'block size-2.5 rounded-full transition-colors',
+                            'block h-2.5 rounded-full transition-[width,background-color] duration-200 motion-reduce:transition-none',
                             active
-                              ? 'bg-sidebar-ring'
-                              : 'bg-sidebar-foreground/60 group-hover:bg-sidebar-foreground/80',
+                              ? 'w-5 bg-sidebar-ring'
+                              : 'w-2.5 bg-sidebar-foreground/60 group-hover:bg-sidebar-foreground/80',
                           )}
                         />
                       </button>

@@ -149,7 +149,7 @@ describe('LoginForm', () => {
 
     expect(screen.getByLabelText('Email address')).toHaveClass('h-11', 'md:h-8');
     expect(screen.getByLabelText('Password')).toHaveClass('h-11', 'md:h-8');
-    expect(screen.getByRole('button', { name: /sign in/i })).toHaveClass('h-11', 'sm:h-8');
+    expect(screen.getByRole('button', { name: /sign in/i })).toHaveClass('h-11', 'md:h-8');
     expect(screen.getByRole('button', { name: 'Show password' })).toHaveClass('w-11', 'h-full');
   });
 

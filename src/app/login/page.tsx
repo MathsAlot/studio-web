@@ -64,7 +64,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
                 Internal curriculum authoring console for MathsAlot staff.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-2">
               {params.error === 'forbidden' ? <ForbiddenSessionCleanup /> : null}
               <LoginForm nextPath={nextPath} initialError={initialError} />
             </CardContent>
